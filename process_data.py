@@ -80,6 +80,6 @@ def formatted_data(data=None, save=False, size=1, folder='processed_data/'):
     test.to_csv(folder + 'test.csv', encoding='utf-8', index=False)
 
     avg = get_avg_length(data)
-    vocab_size, train, test = tokenize_data(train, test, avg, size=1, save=save)
+    vocab_size, train, test = tokenize_data(train, test, avg, size=size, save=save)
     print("Data Processing Completed")
     return (vocab_size, avg), train, test
