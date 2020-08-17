@@ -32,7 +32,7 @@ def clean_text(tweet):
 def clean_data(df, save=False, folder='processed_data/'):
     df['Tweet'] = df['Tweet'].apply(lambda col: clean_text(col))
     if save: 
-        df.to_csv(folder + "processed_data.csv", encoding='utf-8')
+        df.to_csv(folder + "processed_data.csv", encoding='utf-8', index=False)
     print("Data Cleaned")
     return df
 
@@ -60,14 +60,14 @@ def tokenize_data(train, test, avg, save=False):
     y_train = list(train.Sentiment)
     y_test = list(test.Sentiment)
 
-    save_var = (X_train, X_test, y_train, y_test)
-    name = ('X_train', 'X_test', 'y_train', 'y_test')
+    save_var = (X_train, X_test, y_train, y_test, tokenizer.word_index)
+    name = ('X_train', 'X_test', 'y_train', 'y_test', 'word_index')
     if save:
         save_pkl(save_var, name)
     print("Data tokenized and padded")
     return vocab_size, (X_train, y_train), (X_test, y_test)
 
-def process_data(data=None, save=False, folder='processed_data/'):
+def formatted_data(data=None, save=False, folder='processed_data/'):
     if not data:
         if os.path.isfile(folder + "processed_data.csv"):
             data = pd.read_csv(folder + "processed_data.csv").fillna('')
@@ -75,14 +75,10 @@ def process_data(data=None, save=False, folder='processed_data/'):
             data = default(True)
 
     train, test = train_test_split(data, test_size=0.2, random_state=12)
-    train.to_csv(folder + "train.csv", encoding='utf-8')
-    test.to_csv(folder + 'test.csv', encoding='utf-8')
+    train.to_csv(folder + "train.csv", encoding='utf-8', index=False)
+    test.to_csv(folder + 'test.csv', encoding='utf-8', index=False)
 
     avg = get_avg_length(data)
     vocab_size, train, test = tokenize_data(train, test, avg, save=save)
     print("Data Processing Completed")
     return (vocab_size, avg), train, test
-
-
-if __name__ == "__main__":
-    process_data(save=True)
