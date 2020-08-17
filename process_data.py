@@ -61,8 +61,8 @@ def tokenize_data(train, test, avg, size=1, save=False):
     y_train = list(train.Sentiment)
     y_test = list(test.Sentiment)
 
-    save_var = (X_train, X_test, y_train, y_test, tokenizer.word_index)
-    name = ('X_train', 'X_test', 'y_train', 'y_test', 'word_index')
+    save_var = (X_train, X_test, y_train, y_test, tokenizer, tokenizer.word_index)
+    name = ('X_train', 'X_test', 'y_train', 'y_test', 'tokenizer', 'word_index')
     if save:
         save_pkl(save_var, name)
     print("Data tokenized and padded")
