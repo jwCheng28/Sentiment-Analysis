@@ -104,7 +104,7 @@ def formatted_data(data=None, size=1, save=False, folder='processed_data/'):
         train.to_csv(folder + "train.csv", encoding='utf-8', index=False)
         test.to_csv(folder + "test.csv", encoding='utf-8', index=False)
 
-    vocab_size, tokenizer = tokenize_data(train, test, avg, size=size, save=save)
+    vocab_size, tokenizer = tokenize_data(train, test, size=size)
     train, test = pad_data(tokenizer, train, test, avg)
 
     print("Data Processing Completed")
