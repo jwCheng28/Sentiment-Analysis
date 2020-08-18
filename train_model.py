@@ -8,7 +8,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
 import process_data
 
-attr, train, test = process_data.formatted_data()
+attr, train, test = process_data.formatted_data(size=0.5)
 vocab_size, avg_len = attr
 
 def glove_data(save=False, folder="processed_data/"):
@@ -55,7 +55,7 @@ def train(save_all=False, folder="processed_data/"):
         model = load_model(folder + 'sentiment_model.h5')
     else:
         matrix = glove_matrix()
-        X_train, y_train = np.asarray(train)
+        X_train, y_train = train
         model = _create_model(vocab_size, avg_len, matrix)
         model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy'])
         model.fit(X_train, y_train, validation_split = 0.1, batch_size=1024, epochs=12, verbose=2)
@@ -65,7 +65,7 @@ def train(save_all=False, folder="processed_data/"):
     return model
 
 def test_accuracy(model, ret=False):
-    X_test, y_test = np.asarray(test)
+    X_test, y_test = test
     pred = model.predict(X_test)
     int_pred = np.rint(pred).reshape(-1, 1)
     y_test = y_test.reshape(-1, 1)

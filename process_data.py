@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import pickle
 import os
+import numpy as np
 from sklearn.model_selection import train_test_split
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -52,12 +53,12 @@ def save_pkl(save_var, name, folder='processed_data/'):
 def load_pkl(name, folder='processed_data/'):
     res = []
     for n in name:
-        res += [pickle.load(folder + n +'pyb', 'rb')]
+        res += [pickle.load(open(folder + n +'.pyb', 'rb'))]
     return res
 
 def tokenize_data(train, test, size=1):
-    if os.path.isfile("processed_data/tokenizer_half.pyb"):
-        tokenizer = pickle.load(open("processed_data/tokenizer_half.pyb", "rb"))
+    if os.path.isfile("processed_data/tokenizer.pyb"):
+        tokenizer = pickle.load(open("processed_data/tokenizer.pyb", "rb"))
     else:
         tokenizer = Tokenizer()
         sub_r = round(len(train)*size)
@@ -66,11 +67,11 @@ def tokenize_data(train, test, size=1):
     print("Data Tokenized")
     return vocab_size, tokenizer
 
-def _data_padding(tokenizer, train, test, avg, save=False):
+def _data_padding(tokenizer, train, test, avg=40, save=False):
     X_train = pad_sequences(tokenizer.texts_to_sequences(train.Tweet), maxlen=avg)
     X_test = pad_sequences(tokenizer.texts_to_sequences(test.Tweet), maxlen=avg)
-    y_train = list(train.Sentiment)
-    y_test = list(test.Sentiment)
+    y_train = np.asarray(list(train.Sentiment))
+    y_test = np.asarray(list(test.Sentiment))
 
     save_var = (X_train, X_test, y_train, y_test, tokenizer)
     name = ('X_train', 'X_test', 'y_train', 'y_test', 'tokenizer')
@@ -78,13 +79,13 @@ def _data_padding(tokenizer, train, test, avg, save=False):
         save_pkl(save_var, name)
     return (X_train, y_train), (X_test, y_test)
 
-def pad_data(tokenizer, train, test, avg, save=False, folder="processed_data/")
+def pad_data(tokenizer, train, test, avg=40, save=False, folder="processed_data/"):
     if os.path.isfile(folder + "X_train.pyb"):
         name = ('X_train', 'y_train', 'X_test', 'y_test')
         res = load_pkl(name)
         train, test = (res[0], res[1]), (res[2], res[3])
     else:
-        train, test = _data_padding(tokenizer, train, test, avg)
+        train, test = _data_padding(tokenizer, train, test, avg, save=save)
     print("Data Padded")
     return train, test
 
@@ -105,7 +106,7 @@ def formatted_data(data=None, size=1, save=False, folder='processed_data/'):
         test.to_csv(folder + "test.csv", encoding='utf-8', index=False)
 
     vocab_size, tokenizer = tokenize_data(train, test, size=size)
-    train, test = pad_data(tokenizer, train, test, avg)
+    train, test = pad_data(tokenizer, train, test, avg=40, save=True)
 
     print("Data Processing Completed")
     return (vocab_size, avg), train, test
