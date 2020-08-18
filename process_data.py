@@ -36,11 +36,10 @@ def clean_data(df, save=False, folder='processed_data/'):
     print("Data Cleaned")
     return df
 
-def default(get=False):
+def default_clean():
     data = getData()
     cleaned = clean_data(data, True)
-    if get: 
-        return cleaned
+    return cleaned
 
 def get_avg_length(data):
     avg_len = round(sum(data['Tweet'].apply(lambda x: len(x)))/len(data))
@@ -50,36 +49,63 @@ def save_pkl(save_var, name, folder='processed_data/'):
     for var, n in zip(save_var, name):
         pickle.dump(var, open(folder + n + '.pyb', 'wb'))
 
-def tokenize_data(train, test, avg, size=1, save=False):
-    tokenizer = Tokenizer()
-    sub_r = round(len(train)*size)
-    tokenizer.fit_on_texts(train[:sub_r].Tweet)
-    vocab_size = len(tokenizer.word_index) + 1
+def load_pkl(name, folder='processed_data/'):
+    res = []
+    for n in name:
+        res += [pickle.load(folder + n +'pyb', 'rb')]
+    return res
 
+def tokenize_data(train, test, size=1):
+    if os.path.isfile("processed_data/tokenizer_half.pyb"):
+        tokenizer = pickle.load(open("processed_data/tokenizer_half.pyb", "rb"))
+    else:
+        tokenizer = Tokenizer()
+        sub_r = round(len(train)*size)
+        tokenizer.fit_on_texts(train[:sub_r].Tweet)
+    vocab_size = len(tokenizer.word_index) + 1
+    print("Data Tokenized")
+    return vocab_size, tokenizer
+
+def _data_padding(tokenizer, train, test, avg, save=False):
     X_train = pad_sequences(tokenizer.texts_to_sequences(train.Tweet), maxlen=avg)
     X_test = pad_sequences(tokenizer.texts_to_sequences(test.Tweet), maxlen=avg)
     y_train = list(train.Sentiment)
     y_test = list(test.Sentiment)
 
-    save_var = (X_train, X_test, y_train, y_test, tokenizer, tokenizer.word_index)
-    name = ('X_train', 'X_test', 'y_train', 'y_test', 'tokenizer', 'word_index')
+    save_var = (X_train, X_test, y_train, y_test, tokenizer)
+    name = ('X_train', 'X_test', 'y_train', 'y_test', 'tokenizer')
     if save:
         save_pkl(save_var, name)
-    print("Data tokenized and padded")
-    return vocab_size, (X_train, y_train), (X_test, y_test)
+    return (X_train, y_train), (X_test, y_test)
 
-def formatted_data(data=None, save=False, size=1, folder='processed_data/'):
+def pad_data(tokenizer, train, test, avg, save=False, folder="processed_data/")
+    if os.path.isfile(folder + "X_train.pyb"):
+        name = ('X_train', 'y_train', 'X_test', 'y_test')
+        res = load_pkl(name)
+        train, test = (res[0], res[1]), (res[2], res[3])
+    else:
+        train, test = _data_padding(tokenizer, train, test, avg)
+    print("Data Padded")
+    return train, test
+
+def formatted_data(data=None, size=1, save=False, folder='processed_data/'):
     if not data:
         if os.path.isfile(folder + "processed_data.csv"):
             data = pd.read_csv(folder + "processed_data.csv").fillna('')
         else:
-            data = default(True)
-
-    train, test = train_test_split(data, test_size=0.2, random_state=12)
-    train.to_csv(folder + "train.csv", encoding='utf-8', index=False)
-    test.to_csv(folder + 'test.csv', encoding='utf-8', index=False)
-
+            data = default_clean()
     avg = get_avg_length(data)
-    vocab_size, train, test = tokenize_data(train, test, avg, size=size, save=save)
+
+    if os.path.isfile(folder + "test.csv") and os.path.isfile(folder + "train.csv"):
+        train = pd.read_csv(folder + "train.csv").fillna('')
+        test = pd.read_csv(folder + "test.csv").fillna('')
+    else:
+        train, test = train_test_split(data, test_size=0.2, random_state=12)
+        train.to_csv(folder + "train.csv", encoding='utf-8', index=False)
+        test.to_csv(folder + "test.csv", encoding='utf-8', index=False)
+
+    vocab_size, tokenizer = tokenize_data(train, test, avg, size=size, save=save)
+    train, test = pad_data(tokenizer, train, test, avg)
+
     print("Data Processing Completed")
     return (vocab_size, avg), train, test
