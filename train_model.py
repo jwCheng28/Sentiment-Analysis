@@ -1,8 +1,6 @@
 import pickle
 from os import path
 import numpy as np
-import pandas as pd
-import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv1D, Bidirectional, LSTM, Dense
 from tensorflow.keras.layers import Dropout, SpatialDropout1D, Embedding
@@ -11,6 +9,7 @@ from tensorflow.keras.models import load_model
 import process_data
 
 attr, train, test = process_data.formatted_data()
+vocab_size, avg_len = attr
 
 def glove_data(save=False, folder="processed_data/"):
     if path.isfile(folder + "glove_map.pyb"):
@@ -29,7 +28,7 @@ def glove_data(save=False, folder="processed_data/"):
 
 def glove_matrix():
     glove_map = glove_data()
-    matrix = np.zeros((attr[0], 300))
+    matrix = np.zeros((vocab_size, 300))
     word_index = pickle.load(open("processed_data/word_index.pyb", "rb"))
     for word, i in word_index():
         glove_vect = glove_map.get(word)
@@ -56,14 +55,24 @@ def train(save_all=False, folder="processed_data/"):
         model = load_model(folder + 'sentiment_model.h5')
     else:
         matrix = glove_matrix()
-        X_train, y_train = train
-        model = _create_model(attr[0], attr[1], matrix)
+        X_train, y_train = np.asarray(train)
+        model = _create_model(vocab_size, avg_len, matrix)
         model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=['accuracy'])
         model.fit(X_train, y_train, validation_split = 0.1, batch_size=1024, epochs=12, verbose=2)
         if save_all:
             model.save(folder + 'sentiment_model.h5')
             pickle.dump(model.history.history, open(folder + "history.pyb", 'wb'))
     return model
+
+def test_accuracy(model, ret=False):
+    X_test, y_test = np.asarray(test)
+    pred = model.predict(X_test)
+    int_pred = np.rint(pred).reshape(-1, 1)
+    y_test = y_test.reshape(-1, 1)
+    accuracy = np.mean(int_pred == y_test)
+    print("Accuracy on Test Data: ", round(accuracy, 4), '%')
+    if ret:
+        return accuracy
 
 def plot_template(history, ref, save=False, folder='pics/'):
     plt.plot(history[ref[0]], c='#00d2ff', label=ref[2])
@@ -79,7 +88,7 @@ def plot_template(history, ref, save=False, folder='pics/'):
 def history_plot(look='accuracy', save=False, folder='pics/'):
     if look == 'accuracy':
         ref = ('accuracy', 'val_accuracy', 'Train Accuracy', 'CV Accuracy')
-    elif look = 'loss':
+    elif look == 'loss':
         ref = ('loss', 'val_loss', 'Train Loss', 'CV Loss')
     else:
         print(look + " Data Doesn't Exist")
