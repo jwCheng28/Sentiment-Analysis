@@ -2,6 +2,9 @@ import pickle
 from process_data import clean_text as ct
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 def process_text(text, file="processed_data/tokenizer_half.pyb"):
     text = ct(text)
@@ -12,7 +15,7 @@ def process_text(text, file="processed_data/tokenizer_half.pyb"):
 def get_sentiment(model_f="processed_data/sentiment_model.h5", tokenizer_f="processed_data/tokenizer_half.pyb"):
     key = ['Negative', 'Positive']
     model = load_model(model_f)
-    print("Model Loaded")
+    print("\nModel Loaded")
     text = input("\nEnter a sentence:\n")
     text = process_text(text, file=tokenizer_f)
     pred = model.predict(text).item()
