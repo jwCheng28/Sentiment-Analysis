@@ -31,3 +31,6 @@ There's a couple parameters the user could play, including saving files and chan
 When I was training the neural network, due to the lack of computational power I only used half the dataset for training (which is also the default setting for ```train_model.py```). The result of the model architecture and hyperparameter I chose are shown below. The model also achieved 75.58% accuracy when used on test data, which is shown within ```testing.ipynb```. The results are not too bad, but probably could be improved upon with a better or more complex architecture (keep in mind this will also increase the computational cost).
 
 ![alt text 1](https://github.com/jwCheng28/Sentiment-Analysis/blob/master/pics/accuracy_history.png) ![alt text 2](https://github.com/jwCheng28/Sentiment-Analysis/blob/master/pics/loss_history.png)
+
+## Demo
+<img src="./pics/demo_s.gif" width="850" height="550"/>
