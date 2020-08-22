@@ -34,3 +34,6 @@ When I was training the neural network, due to the lack of computational power I
 
 ## Demo
 <img src="./pics/demo_s.gif" width="850" height="550"/>
+
+## Data Source
+The data used in this project could be found in Kaggle (https://www.kaggle.com/kazanova/sentiment140). Simply put the downloaded data within a directory named 'data' and this project will run correct. The Data is not included in this Github Repository due to Githubs 100MB limitation.
